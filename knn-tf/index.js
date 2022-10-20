@@ -14,9 +14,9 @@ return features
     .expandDims(1)
     .concat(labels, 1)
     .unstack()  // separates a tensor by rows of tensors inside a JS array
-    .sort((a, b) => a.get(0) > b.get(0)? 1 : -1) // using a JS operation since we have JS array of tensors
+    .sort((a, b) => a.dataSync()[0] > b.dataSync()[0]? 1 : -1) // using a JS operation since we have JS array of tensors
     .slice(0, k) // JS version of slice
-    .reduce((acc, pair) => acc + pair.get(1), 0) / k // JS version of reduce
+    .reduce((acc, pair) => acc + pair.dataSync()[1], 0) / k // JS version of reduce
 }
 
 let { features, labels, testFeatures, testLabels} = loadCSV('kc_house_data.csv', {
@@ -29,8 +29,8 @@ let { features, labels, testFeatures, testLabels} = loadCSV('kc_house_data.csv',
 features = tf.tensor(features);
 labels = tf.tensor(labels);
 
-// const result = knn(features, labels, tf.tensor(testFeatures[0]), 10);
-// console.log('Guess', result, testLabels[0][0]);
-
-const ts = tf.tensor([1,2,3,4,5,6]);
-console.log("value: ", ts.get(0));
+testFeatures.forEach((testPoint, i) => {
+    const result = knn(features, labels, tf.tensor(testPoint), 10);
+    const err = (testLabels[i][0] - result) / testLabels[i][0]; // error = ((expected value) - (predicted value)) / (Expected value)
+    console.log('Error', err * 100, 'Guess', result, testLabels[i][0]);
+})
